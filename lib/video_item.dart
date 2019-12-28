@@ -1,8 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_video/app_event_bus.dart';
+import 'package:flutter_video/fullscreen_play.dart';
 import 'package:flutter_video/video_entity.dart';
 import 'package:flutter_video/video_event.dart';
+import 'package:flutter_video/video_list.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:video_player/video_player.dart';
 
@@ -16,39 +18,33 @@ class VideoItem extends StatefulWidget {
 
 class _VideoItemState extends State<VideoItem> {
   VideoPlayerController _controller;
-  int stackIndex = 0;
-  bool isAutoDispose = false;
-  VoidCallback listener;
+  int _stackIndex = 0;
+  bool _isAutoDispose = false;
+  VoidCallback _listener;
 
   @override
   void initState() {
     super.initState();
-    listener = () async {
-      if(isAutoDispose) {
+    _listener = () async {
+      if(_isAutoDispose) {
         _controller.dispose();
         return;
       }
-//      if(_controller.value.position.inMilliseconds == _controller.value.duration.inMilliseconds) {
-//        Fluttertoast.showToast(msg: '播放完成');
-//        setState(() {
-//          isAutoDispose = true;
-//          stackIndex = 0;
-//        });
-//        await _controller.dispose();
-//        setState(() {
-//          _controller = null;
-//        });
-//      }
-//      print('_controller.value is null = ${_controller.value == null}');
     };
+    if(VideoList.fullscreenVideo != null && VideoList.fullscreenVideo.entity.videoUrl == widget.entity.videoUrl) {
+      _controller = VideoList.fullscreenVideo.controller;
+      VideoList.fullscreenVideo = null;
+      _stackIndex = 1;
+    }
+
     eventBus.on<VideoEvent>().listen((event){
       if(event.videoEntity != widget.entity) {
-        if(_controller != null && !isAutoDispose && _controller.value.initialized) {
+        if(_controller != null && !_isAutoDispose && _controller.value.initialized) {
           if(mounted) {
             setState(() {
               _controller.pause();
-              isAutoDispose = true;
-              stackIndex = 0;
+              _isAutoDispose = true;
+              _stackIndex = 0;
             });
           }
         }
@@ -63,7 +59,7 @@ class _VideoItemState extends State<VideoItem> {
       child: AspectRatio(
         aspectRatio: 16/9,
         child: IndexedStack(
-          index: stackIndex,
+          index: _stackIndex,
           alignment: AlignmentDirectional.center,
           children: <Widget>[
             _buildThumbnail(),
@@ -75,11 +71,11 @@ class _VideoItemState extends State<VideoItem> {
   }
 
   _initialController() async {
-    isAutoDispose = false;
+    _isAutoDispose = false;
     eventBus.fire(VideoEvent(widget.entity));
     await _controller?.dispose();
     _controller = VideoPlayerController.network(widget.entity.videoUrl);
-    _controller.addListener(listener);
+    _controller.addListener(_listener);
     _controller.setLooping(true);
     await _controller.initialize();
     return _controller.value.initialized;
@@ -92,7 +88,7 @@ class _VideoItemState extends State<VideoItem> {
         if(_isInitialed) {
           setState(() {
             _controller.play();
-            stackIndex = 1;
+            _stackIndex = 1;
           });
         } else{
           Fluttertoast.showToast(msg: '视频加载失败，请重试。');
@@ -103,19 +99,25 @@ class _VideoItemState extends State<VideoItem> {
   }
 
   Widget _buildPlayer() {
-    if(_controller == null || isAutoDispose) {
+    if(_controller == null || _isAutoDispose) {
       return Container();
     } else {
       return  GestureDetector(
-      onTap: _controller == null || isAutoDispose ? null : () {
-        if(_controller.value.initialized) {
-          setState(() {
-            _controller.value.isPlaying
-                ? _controller.pause()
-                : _controller.play();
-          });
-        }
-      },
+        onTap: _controller == null || _isAutoDispose ? null : () {
+          if(_controller.value.initialized) {
+            setState(() {
+              _controller.value.isPlaying
+                  ? _controller.pause()
+                  : _controller.play();
+            });
+          }
+        },
+        onDoubleTap: () {
+          VideoList.fullscreenVideo = FullscreenVideo(widget.entity, _controller);
+          Navigator.push(context, MaterialPageRoute(builder: (context){
+            return FullscreenPlay(widget.entity, _controller);
+          }));
+        },
         child: VideoPlayer(_controller),
       );
     }
@@ -123,7 +125,9 @@ class _VideoItemState extends State<VideoItem> {
 
   @override
   void dispose() {
-    _controller?.dispose();
+    if(VideoList.fullscreenVideo == null || VideoList.fullscreenVideo.entity.videoUrl != widget.entity.videoUrl) {
+      _controller?.dispose();
+    }
     super.dispose();
   }
 }
