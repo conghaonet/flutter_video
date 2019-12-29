@@ -118,7 +118,13 @@ class _VideoItemState extends State<VideoItem> {
             return FullscreenPlay(widget.entity, _controller);
           }));
         },
-        child: VideoPlayer(_controller),
+        child: Align(
+          alignment: Alignment.center,
+          child: AspectRatio(
+            aspectRatio: _controller.value.aspectRatio,
+            child: VideoPlayer(_controller),
+          ),
+        ),
       );
     }
   }

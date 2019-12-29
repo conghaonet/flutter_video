@@ -5,10 +5,7 @@ import 'package:flutter/material.dart';
 import 'app_route.dart';
 
 void main() {
-  SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-  ]);
-
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(VideoApp());
 }
 

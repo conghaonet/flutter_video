@@ -30,6 +30,7 @@ class _VideoListState extends State<VideoList> {
       ),
       body: SafeArea(
         child: ListView.builder(
+          cacheExtent: 0,
           itemCount: videosUrl.length,
           itemBuilder: (context, index) {
             return VideoItem(VideoEntity(videosUrl[index], thumbnails[index]));
