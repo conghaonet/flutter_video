@@ -12,5 +12,5 @@ class VideoEntity {
   }
 
   @override
-  int get hashCode => videoUrl.hashCode^thumbnail.hashCode;
+  int get hashCode => videoUrl.hashCode ^ thumbnail.hashCode;
 }
