@@ -73,7 +73,11 @@ class _VideoItemState extends State<VideoItem> {
   _initialController() async {
     _isAutoDispose = false;
     eventBus.fire(VideoEvent(widget.entity));
-    await _controller?.dispose();
+    try {
+      await _controller?.dispose();
+    } catch(e) {
+      print(e.toString());
+    }
     _controller = VideoPlayerController.network(widget.entity.videoUrl);
     _controller.addListener(_listener);
     _controller.setLooping(true);
