@@ -27,7 +27,11 @@ class _VideoItemState extends State<VideoItem> {
     super.initState();
     _listener = () async {
       if(_isAutoDispose) {
-        _controller.dispose();
+        try {
+          _controller?.dispose();
+        } catch(e) {
+
+        }
         return;
       }
     };
@@ -42,7 +46,11 @@ class _VideoItemState extends State<VideoItem> {
         if(_controller != null && !_isAutoDispose && _controller.value.initialized) {
           if(mounted) {
             setState(() {
-              _controller.pause();
+              try {
+                _controller.pause();
+              } catch(e) {
+
+              }
               _isAutoDispose = true;
               _stackIndex = 0;
             });
@@ -136,7 +144,11 @@ class _VideoItemState extends State<VideoItem> {
   @override
   void dispose() {
     if(VideoList.fullscreenVideo == null || VideoList.fullscreenVideo.entity.videoUrl != widget.entity.videoUrl) {
-      _controller?.dispose();
+      try {
+        _controller?.dispose();
+      } catch(e) {
+
+      }
     }
     super.dispose();
   }
