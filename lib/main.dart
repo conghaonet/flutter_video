@@ -42,14 +42,9 @@ class _VideoAppState extends State<VideoApp> {
             child: Container(
               width: double.infinity,
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
-                  MaterialButton(
-                    child: Text('插件Demo'),
-                    onPressed: () {
-
-                    },
-                  ),
                   RaisedButton(
                     child: Text('视频列表'),
                     onPressed: () {
